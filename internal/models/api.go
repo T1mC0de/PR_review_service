@@ -2,13 +2,12 @@ package models
 
 import (
 	"time"
-	"errors"
 )
 
 // Team API модели
 type CreateTeamRequest struct {
-	TeamName string          `json:"team_name"`
-	Members  []TeamMember    `json:"members"`
+	TeamName string       `json:"team_name"`
+	Members  []TeamMember `json:"members"`
 }
 
 type TeamMember struct {
@@ -51,13 +50,13 @@ type CreatePRRequest struct {
 }
 
 type PRResponse struct {
-	PullRequestID    string    `json:"pull_request_id"`
-	PullRequestName  string    `json:"pull_request_name"`
-	AuthorID         string    `json:"author_id"`
-	Status           string    `json:"status"`
-	AssignedReviewers []string `json:"assigned_reviewers"`
-	CreatedAt        time.Time `json:"created_at"`
-	MergedAt         time.Time `json:"merged_at"`
+	PullRequestID     string    `json:"pull_request_id"`
+	PullRequestName   string    `json:"pull_request_name"`
+	AuthorID          string    `json:"author_id"`
+	Status            string    `json:"status"`
+	AssignedReviewers []string  `json:"assigned_reviewers"`
+	CreatedAt         time.Time `json:"created_at"`
+	MergedAt          time.Time `json:"merged_at"`
 }
 
 type PRResponseWrapper struct {
@@ -74,13 +73,13 @@ type ReassignRequest struct {
 }
 
 type ReassignResponse struct {
-	PR          PRResponse `json:"pr"`
-	ReplacedBy  string     `json:"replaced_by"`
+	PR         PRResponse `json:"pr"`
+	ReplacedBy string     `json:"replaced_by"`
 }
 
 type UserPRsResponse struct {
-	UserID        string          `json:"user_id"`
-	PullRequests  []PRShortResponse `json:"pull_requests"`
+	UserID       string            `json:"user_id"`
+	PullRequests []PRShortResponse `json:"pull_requests"`
 }
 
 type PRShortResponse struct {
@@ -89,13 +88,3 @@ type PRShortResponse struct {
 	AuthorID        string `json:"author_id"`
 	Status          string `json:"status"`
 }
-
-// Ошибки
-var (
-	ErrTeamExists    = errors.New("TEAM_EXISTS")
-	ErrPRExists      = errors.New("PR_EXISTS")
-	ErrPRMerged      = errors.New("PR_MERGED")
-	ErrNotAssigned   = errors.New("NOT_ASSIGNED")
-	ErrNoCandidate   = errors.New("NO_CANDIDATE")
-	ErrNotFound      = errors.New("NOT_FOUND")
-)
