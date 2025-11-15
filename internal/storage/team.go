@@ -116,41 +116,43 @@ func (s *Storage) GetTeam(
 	return &team, members, tx.Commit()
 }
 
-func (s *Storage) getActiveMembersExcept(ctx context.Context, teamId int, excludedUserId string) ([]string, error) {
+func (s *Storage) getActiveMembersExcept(
+	ctx context.Context,
+	teamID int,
+	excludedUserID string,
+) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
 	defer cancel()
-	
+
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT user_id
 		FROM users 
 		WHERE team_id = $1 AND is_active = TRUE AND user_id != $2
 		LIMIT 2`,
-		teamId, excludedUserId)
+		teamID, excludedUserID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var membersIds []string
-	
+	var membersIDs []string
+
 	for rows.Next() {
 		var member models.DBUser
+
 		err := rows.Scan(
 			&member.UserID,
 		)
 		if err != nil {
 			return nil, err
 		}
-		membersIds = append(membersIds, member.UserID)
+
+		membersIDs = append(membersIDs, member.UserID)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return membersIds, nil
+	return membersIDs, nil
 }
-
-
-
-

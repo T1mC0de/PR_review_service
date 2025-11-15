@@ -46,16 +46,16 @@ func (s *Storage) SetIsActive(
 	return &user, tx.Commit()
 }
 
-func (s *Storage) getUserTeamId(ctx context.Context, userID string) (*int, error) {
+func (s *Storage) getUserTeamID(ctx context.Context, userID string) (*int, error) {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
 	defer cancel()
 
-	var teamId int
+	var teamID int
 
 	err := s.db.QueryRowContext(ctx, `
 		SELECT team_id 
 		FROM users 
-		WHERE user_id = $1`, userID).Scan(&teamId)
+		WHERE user_id = $1`, userID).Scan(&teamID)
 	if err != nil {
 		switch err {
 		case constants.ErrNoRows:
@@ -65,8 +65,5 @@ func (s *Storage) getUserTeamId(ctx context.Context, userID string) (*int, error
 		}
 	}
 
-	return &teamId, nil
+	return &teamID, nil
 }
-
-
-

@@ -6,7 +6,12 @@ import (
 	"pr-review-service/internal/constants"
 )
 
-func (s *Storage) CreatePullRequest(ctx context.Context, pr_id string, prName string, prAuthorId string) error {
+func (s *Storage) CreatePullRequest(
+	ctx context.Context,
+	prID string,
+	prName string,
+	prAuthorID string,
+) error {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
 	defer cancel()
 
@@ -15,10 +20,10 @@ func (s *Storage) CreatePullRequest(ctx context.Context, pr_id string, prName st
 		return err
 	}
 	defer tx.Rollback() //nolint:errcheck
-	
+
 	var exists bool
 
-	err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM pull_requests WHERE pull_request_id = $1)", pr_id).
+	err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM pull_requests WHERE pull_request_id = $1)", prID).
 		Scan(&exists)
 	if err != nil {
 		return err
@@ -28,8 +33,7 @@ func (s *Storage) CreatePullRequest(ctx context.Context, pr_id string, prName st
 		return constants.ErrPRExists
 	}
 
-	teamId, err := s.getUserTeamId(ctx, prAuthorId)
-
+	teamID, err := s.getUserTeamID(ctx, prAuthorID)
 	if err != nil {
 		switch err {
 		case constants.ErrUserNotFound:
@@ -39,24 +43,63 @@ func (s *Storage) CreatePullRequest(ctx context.Context, pr_id string, prName st
 		}
 	}
 
-	activeMembers, err := s.getActiveMembersExcept(ctx, *teamId, prAuthorId)
+	activeMembers, err := s.getActiveMembersExcept(ctx, *teamID, prAuthorID)
 	if err != nil {
 		return err
 	}
 
 	_, err = tx.ExecContext(ctx, `
-		INSERT INTO pull_requests (pull_request_id, title, author_id) 
-		VALUES ($1, $2, $3)`,
-		pr_id, prName, prAuthorId)
+	       INSERT INTO pull_requests (pull_request_id, title, author_id) 
+	       VALUES ($1, $2, $3)`,
+		prID, prName, prAuthorID)
 	if err != nil {
 		return err
 	}
 
-	for _, memberId := range activeMembers {
+	for _, memberID := range activeMembers {
 		_, err = tx.ExecContext(ctx, `
-			INSERT INTO pr_reviewers (pr_id, reviewer_id) 
-			VALUES ($1, $2)`,
-			pr_id, memberId)
+		      INSERT INTO pr_reviewers (pr_id, reviewer_id) 
+		      VALUES ($1, $2)`,
+			prID, memberID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (s *Storage) MergePullRequest(ctx context.Context, prID string) error {
+	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	var status string
+
+	err = tx.QueryRowContext(ctx, "SELECT status FROM pull_requests WHERE pull_request_id = $1", prID).
+		Scan(&status)
+	if err != nil {
+		if err == constants.ErrNoRows {
+			return constants.ErrPRNotFound
+		}
+
+		return err
+	}
+
+	switch status {
+	case "MERGED":
+		return tx.Commit()
+	default:
+		_, err = tx.ExecContext(ctx, `
+		       UPDATE pull_requests 
+		       SET status = $1, merged_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+		       WHERE pull_request_id = $2`,
+			"MERGED", prID)
 		if err != nil {
 			return err
 		}
