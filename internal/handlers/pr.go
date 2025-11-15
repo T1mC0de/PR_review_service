@@ -171,7 +171,12 @@ func (h *PullRequestHandler) ReassignPR(w http.ResponseWriter, r *http.Request) 
 				"old_user_id does not belong to any team",
 			)
 		case constants.ErrNoCandidate:
-			h.sendError(w, http.StatusBadRequest, "NO_CANDIDATE", "No candidate available for reassignment")
+			h.sendError(
+				w,
+				http.StatusBadRequest,
+				"NO_CANDIDATE",
+				"No candidate available for reassignment",
+			)
 		default:
 			h.sendError(
 				w,
@@ -183,7 +188,6 @@ func (h *PullRequestHandler) ReassignPR(w http.ResponseWriter, r *http.Request) 
 
 		return
 	}
-
 
 	updatedPR, err := h.storage.GetPR(r.Context(), req.PullRequestID)
 	if err != nil {
@@ -199,5 +203,3 @@ func (h *PullRequestHandler) ReassignPR(w http.ResponseWriter, r *http.Request) 
 
 	h.sendJSON(w, http.StatusOK, resp)
 }
-
-

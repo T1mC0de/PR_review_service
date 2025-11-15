@@ -109,7 +109,11 @@ func (s *Storage) MergePullRequest(ctx context.Context, prID string) error {
 	return tx.Commit()
 }
 
-func (s *Storage) ReassignPullRequest(ctx context.Context, prID string, oldUserID string) (string, error) {
+func (s *Storage) ReassignPullRequest(
+	ctx context.Context,
+	prID string,
+	oldUserID string,
+) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
 	defer cancel()
 
@@ -120,43 +124,54 @@ func (s *Storage) ReassignPullRequest(ctx context.Context, prID string, oldUserI
 	defer tx.Rollback() //nolint:errcheck
 
 	var status string
-    err = tx.QueryRowContext(ctx, "SELECT status FROM pull_requests WHERE pull_request_id = $1", prID).Scan(&status)
-    if err != nil {
+
+	err = tx.QueryRowContext(ctx, "SELECT status FROM pull_requests WHERE pull_request_id = $1", prID).
+		Scan(&status)
+	if err != nil {
 		if err == constants.ErrNoRows {
 			return "", constants.ErrPRNotFound
 		}
-        return "", err
-    }
-    if status == "MERGED" {
-        return "", constants.ErrPRMerged
-    }
+
+		return "", err
+	}
+
+	if status == "MERGED" {
+		return "", constants.ErrPRMerged
+	}
 
 	var assigned bool
-    err = tx.QueryRowContext(ctx, `
+
+	err = tx.QueryRowContext(ctx, `
         SELECT EXISTS(
             SELECT 1 FROM pr_reviewers WHERE pr_id = $1 AND reviewer_id = $2
         )`, prID, oldUserID).Scan(&assigned)
-    if err != nil {
-        return "", err
-    }
-    if !assigned {
-        return "", constants.ErrNotAssigned
-    }
+	if err != nil {
+		return "", err
+	}
+
+	if !assigned {
+		return "", constants.ErrNotAssigned
+	}
 
 	var teamID int
-    err = tx.QueryRowContext(ctx, "SELECT team_id FROM users WHERE user_id = $1", oldUserID).Scan(&teamID)
-    if err != nil {
-        return "", constants.ErrUserTeamNotFound
-    }
+
+	err = tx.QueryRowContext(ctx, "SELECT team_id FROM users WHERE user_id = $1", oldUserID).
+		Scan(&teamID)
+	if err != nil {
+		return "", constants.ErrUserTeamNotFound
+	}
 
 	var authorID string
-    err = tx.QueryRowContext(ctx, "SELECT author_id FROM pull_requests WHERE pull_request_id = $1", prID).Scan(&authorID)
-    if err != nil {
-        return "", constants.ErrPRNotFound
-    }
+
+	err = tx.QueryRowContext(ctx, "SELECT author_id FROM pull_requests WHERE pull_request_id = $1", prID).
+		Scan(&authorID)
+	if err != nil {
+		return "", constants.ErrPRNotFound
+	}
 
 	var newReviewerID string
-    err = tx.QueryRowContext(ctx, `
+
+	err = tx.QueryRowContext(ctx, `
         SELECT user_id FROM users
         WHERE team_id = $1
           AND is_active = true
@@ -167,21 +182,20 @@ func (s *Storage) ReassignPullRequest(ctx context.Context, prID string, oldUserI
           )
         LIMIT 1
     `, teamID, authorID, oldUserID, prID).Scan(&newReviewerID)
-    if err != nil {
-        return "", constants.ErrNoCandidate
-    }
+	if err != nil {
+		return "", constants.ErrNoCandidate
+	}
 
 	_, err = tx.ExecContext(ctx, `
         UPDATE pr_reviewers SET reviewer_id = $1
         WHERE pr_id = $2 AND reviewer_id = $3
     `, newReviewerID, prID, oldUserID)
-    if err != nil {
-        return "", err
-    }
+	if err != nil {
+		return "", err
+	}
 
 	return newReviewerID, tx.Commit()
 }
-
 
 func (s *Storage) GetPR(ctx context.Context, prID string) (*models.DBPullRequest, error) {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
@@ -208,21 +222,19 @@ func (s *Storage) GetPR(ctx context.Context, prID string) (*models.DBPullRequest
 		prID,
 	).Scan(
 		&pr.PullRequestID,
-		&pr.Title, 
+		&pr.Title,
 		&pr.AuthorID,
 		&pr.Status,
 		&pr.CreatedAt,
 		&pr.MergedAt,
 	)
-
 	if err != nil {
 		if err == constants.ErrNoRows {
 			return nil, constants.ErrPRNotFound
 		}
+
 		return nil, err
 	}
 
 	return &pr, nil
 }
-
-
