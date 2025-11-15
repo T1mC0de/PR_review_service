@@ -28,6 +28,7 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 	r.Route("/pullRequest", func(r chi.Router) {
 		r.Post("/create", pullRequestHandler.CreatePR)
 		r.Post("/merge", pullRequestHandler.MergePR)
+		r.Post("/reassign", pullRequestHandler.ReassignPR)
 	})
 
 	return r

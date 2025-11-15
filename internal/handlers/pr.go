@@ -121,3 +121,83 @@ func (h *PullRequestHandler) MergePR(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *PullRequestHandler) ReassignPR(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req models.ReassignRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid json", http.StatusBadRequest)
+		return
+	}
+
+	if req.PullRequestID == "" || req.OldUserID == "" {
+		http.Error(
+			w,
+			"pull_request_id and old_user_id are required",
+			http.StatusBadRequest,
+		)
+
+		return
+	}
+
+	newReviewerID, err := h.storage.ReassignPullRequest(
+		r.Context(),
+		req.PullRequestID,
+		req.OldUserID,
+	)
+	if err != nil {
+		switch err {
+		case constants.ErrPRNotFound:
+			h.sendError(w, http.StatusNotFound, "PR_NOT_FOUND", "pull_request_id not found")
+		case constants.ErrPRMerged:
+			h.sendError(w, http.StatusBadRequest, "PR_MERGED", "Cannot reassign a merged PR")
+		case constants.ErrNotAssigned:
+			h.sendError(
+				w,
+				http.StatusBadRequest,
+				"NOT_ASSIGNED",
+				"old_user_id is not assigned to the pull request",
+			)
+		case constants.ErrUserTeamNotFound:
+			h.sendError(
+				w,
+				http.StatusBadRequest,
+				"USER_TEAM_NOT_FOUND",
+				"old_user_id does not belong to any team",
+			)
+		case constants.ErrNoCandidate:
+			h.sendError(w, http.StatusBadRequest, "NO_CANDIDATE", "No candidate available for reassignment")
+		default:
+			h.sendError(
+				w,
+				http.StatusInternalServerError,
+				"INTERNAL_ERROR",
+				"Internal server error",
+			)
+		}
+
+		return
+	}
+
+
+	updatedPR, err := h.storage.GetPR(r.Context(), req.PullRequestID)
+	if err != nil {
+		h.sendError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to get updated PR")
+		return
+	}
+
+	// Возвращаем данные по спецификации
+	resp := map[string]interface{}{
+		"pr":          updatedPR,
+		"replaced_by": newReviewerID,
+	}
+
+	h.sendJSON(w, http.StatusOK, resp)
+}
+
+
