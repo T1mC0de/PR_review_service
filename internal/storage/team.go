@@ -47,7 +47,7 @@ func (s *Storage) CreateTeam(ctx context.Context, teamName string, members []mod
                 is_active = EXCLUDED.is_active, 
                 team_id = EXCLUDED.team_id,
                 updated_at = CURRENT_TIMESTAMP`,
-			member.ID, member.Username, member.IsActive, teamID, member.CreatedAt)
+			member.UserID, member.Username, member.IsActive, teamID, member.CreatedAt)
 		if err != nil {
 			return err
 		}
