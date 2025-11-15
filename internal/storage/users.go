@@ -45,3 +45,28 @@ func (s *Storage) SetIsActive(
 
 	return &user, tx.Commit()
 }
+
+func (s *Storage) getUserTeamId(ctx context.Context, userID string) (*int, error) {
+	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
+	defer cancel()
+
+	var teamId int
+
+	err := s.db.QueryRowContext(ctx, `
+		SELECT team_id 
+		FROM users 
+		WHERE user_id = $1`, userID).Scan(&teamId)
+	if err != nil {
+		switch err {
+		case constants.ErrNoRows:
+			return nil, constants.ErrTeamNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &teamId, nil
+}
+
+
+

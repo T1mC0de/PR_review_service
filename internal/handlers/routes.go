@@ -24,7 +24,5 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 		r.Post("/setIsActive", userHandler.SetIsActive)
 	})
 
-	
-
 	return r
 }

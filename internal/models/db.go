@@ -25,7 +25,6 @@ type DBPullRequest struct {
 	Title         string     `db:"title"`
 	AuthorID      string     `db:"author_id"`
 	Status        string     `db:"status"`
-	Reviewers     []string   `db:"reviewers"`
 	CreatedAt     time.Time  `db:"created_at"`
 	MergedAt      *time.Time `db:"merged_at"`
 }
