@@ -14,6 +14,7 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 
 	teamHandler := NewTeamHandler(storage)
 	userHandler := NewUserHandler(storage)
+	pullRequestHandler := NewPullRequestHandler(storage)
 
 	r.Route("/team", func(r chi.Router) {
 		r.Post("/add", teamHandler.CreateTeam)
@@ -22,6 +23,10 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/setIsActive", userHandler.SetIsActive)
+	})
+
+	r.Route("/pullRequest", func(r chi.Router) {
+		r.Post("/create", pullRequestHandler.CreatePR)
 	})
 
 	return r

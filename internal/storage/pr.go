@@ -6,7 +6,7 @@ import (
 	"pr-review-service/internal/constants"
 )
 
-func (s *Storage) CreatePR(ctx context.Context, pr_id string, prName string, prAuthorId string) error {
+func (s *Storage) CreatePullRequest(ctx context.Context, pr_id string, prName string, prAuthorId string) error {
 	ctx, cancel := context.WithTimeout(ctx, constants.StorageTimeout)
 	defer cancel()
 
@@ -18,7 +18,7 @@ func (s *Storage) CreatePR(ctx context.Context, pr_id string, prName string, prA
 	
 	var exists bool
 
-	err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM pull_requests WHERE pr_id = $1)", pr_id).
+	err = tx.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM pull_requests WHERE pull_request_id = $1)", pr_id).
 		Scan(&exists)
 	if err != nil {
 		return err
