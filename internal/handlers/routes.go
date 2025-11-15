@@ -13,11 +13,18 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	teamHandler := NewTeamHandler(storage)
+	userHandler := NewUserHandler(storage)
 
 	r.Route("/team", func(r chi.Router) {
 		r.Post("/add", teamHandler.CreateTeam)
 		r.Get("/get", teamHandler.GetTeam)
 	})
+
+	r.Route("/users", func(r chi.Router) {
+		r.Post("/setIsActive", userHandler.SetIsActive)
+	})
+
+	
 
 	return r
 }
