@@ -38,15 +38,6 @@ func (s *Storage) CreateTeam(ctx context.Context, teamName string, members []mod
 	}
 
 	for _, member := range members {
-		_, err = tx.ExecContext(
-			ctx,
-			"UPDATE users SET team_id = NULL WHERE user_id = $1",
-			member.ID,
-		)
-		if err != nil {
-			return err
-		}
-
 		_, err = tx.ExecContext(ctx, `
             INSERT INTO users (user_id, username, is_active, team_id, created_at) 
             VALUES ($1, $2, $3, $4, $5)
