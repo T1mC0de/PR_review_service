@@ -15,7 +15,11 @@ run:
 
 lint: 
 	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
-	golangci-lint run
+	golangci-lint run -c .golangci.yaml --fix ./...
+
+lint-check:
+	@which golangci-lint > /dev/null || (echo "Installing golangci-lint..." && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest)
+	golangci-lint run -c .golangci.yaml ./...
 
 
 docker-up: 
@@ -49,6 +53,14 @@ docker-restart:
 docker-rebuild:
 	$(DOCKER_COMPOSE) down
 	$(DOCKER_COMPOSE) up -d --build
+
+load-test-setup:
+	k6 run scripts/setup_test_data.js
+
+stress-test:
+	$(DOCKER_COMPOSE) exec postgres psql -U pr_user -d pr_reviewer -c "TRUNCATE teams, users, pull_requests, pr_reviewers RESTART IDENTITY CASCADE;" || true
+	sleep 2
+	k6 run scripts/stress_test.js
 
 deps:
 	$(GO_MOD) download

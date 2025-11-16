@@ -27,7 +27,7 @@ formatters:
   enable:
     - gci
     - gofmt
-    - gofumpt
+
     - goimports
     - golines
     - swaggo
@@ -87,3 +87,12 @@ issues:
   # Set to 0 to disable.
   # Default: 3
   max-same-issues: 0
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(pr-review-service)
+  goimports:
+    local-prefixes: pr-review-service
