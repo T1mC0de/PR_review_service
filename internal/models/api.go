@@ -88,3 +88,39 @@ type PRShortResponse struct {
 	AuthorID      string `json:"author_id"`
 	Status        string `json:"status"`
 }
+
+type StatsResponse struct {
+	TotalPRs         int64                        `json:"total_prs"`
+	OpenPRs          int64                        `json:"open_prs"`
+	MergedPRs        int64                        `json:"merged_prs"`
+	TotalUsers       int64                        `json:"total_users"`
+	ActiveUsers      int64                        `json:"active_users"`
+	TotalAssignments int64                        `json:"total_assignments"`
+	TopReviewers     []UserAssignmentStats        `json:"top_reviewers"`
+	PRStats          []PullRequestAssignmentStats `json:"pr_stats"`
+}
+
+type UserAssignmentStats struct {
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+	Assignments int64  `json:"assignments"`
+}
+
+type PullRequestAssignmentStats struct {
+	PRID        string `json:"pr_id"`
+	Title       string `json:"title"`
+	Status      string `json:"status"`
+	Assignments int64  `json:"assignments"`
+}
+
+type MassDeactivateResponse struct {
+	TeamName         string   `json:"team_name"`
+	DeactivatedUsers []string `json:"deactivated_users"`
+	ReassignedPRs    []string `json:"reassigned_prs"`
+	FailedReassigns  []string `json:"failed_reassigns"`
+}
+
+type MassDeactivateRequest struct {
+	TeamName string   `json:"team_name"`
+	UserIDs  []string `json:"user_ids"`
+}

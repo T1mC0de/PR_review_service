@@ -24,6 +24,16 @@ docker-up:
 docker-down: 
 	$(DOCKER_COMPOSE) down
 
+docker-down-clean:
+	$(DOCKER_COMPOSE) down -v --rmi all
+
+db-clean:
+	$(DOCKER_COMPOSE) exec postgres psql -U pr_user -d pr_reviewer -c "TRUNCATE teams, users, pull_requests, pr_reviewers RESTART IDENTITY CASCADE;"
+
+db-reset: 
+	$(DOCKER_COMPOSE) down -v
+	$(DOCKER_COMPOSE) up -d --build
+
 docker-logs: 
 	$(DOCKER_COMPOSE) logs -f
 

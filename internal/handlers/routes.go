@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"pr-review-service/internal/storage"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"pr-review-service/internal/storage"
 )
 
 func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
@@ -15,6 +16,7 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 	teamHandler := NewTeamHandler(storage)
 	userHandler := NewUserHandler(storage)
 	pullRequestHandler := NewPullRequestHandler(storage)
+	statsHandler := NewStatsHandler(storage)
 
 	r.Route("/team", func(r chi.Router) {
 		r.Post("/add", teamHandler.CreateTeam)
@@ -24,12 +26,17 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/setIsActive", userHandler.SetIsActive)
 		r.Get("/getReview", userHandler.GetReview)
+		r.Post("/massDeactivate", userHandler.MassDeactivate)
 	})
 
 	r.Route("/pullRequest", func(r chi.Router) {
 		r.Post("/create", pullRequestHandler.CreatePR)
 		r.Post("/merge", pullRequestHandler.MergePR)
 		r.Post("/reassign", pullRequestHandler.ReassignPR)
+	})
+
+	r.Route("/stats", func(r chi.Router) {
+		r.Get("/get", statsHandler.GetStats)
 	})
 
 	return r

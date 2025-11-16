@@ -118,3 +118,50 @@ func (h *UserHandler) GetReview(w http.ResponseWriter, r *http.Request) {
 
 	h.sendJSON(w, http.StatusOK, resp)
 }
+
+func (h *UserHandler) MassDeactivate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req models.MassDeactivateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.sendError(w, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON body")
+		return
+	}
+
+	if req.TeamName == "" {
+		h.sendError(w, http.StatusBadRequest, "TEAM_NAME_REQUIRED", "team_name is required")
+		return
+	}
+
+	if len(req.UserIDs) == 0 {
+		h.sendError(w, http.StatusBadRequest, "USER_IDS_REQUIRED", "user_ids is required")
+		return
+	}
+
+	if len(req.UserIDs) > 100 {
+		h.sendError(w, http.StatusBadRequest, "LIMIT_EXCEEDED", "maximum 100 user_ids per request")
+		return
+	}
+
+	result, err := h.storage.MassDeactivateUsers(r.Context(), req.TeamName, req.UserIDs)
+	if err != nil {
+		switch err {
+		case constants.ErrTeamNotFound:
+			h.sendError(w, http.StatusNotFound, "TEAM_NOT_FOUND", "Team not found")
+		default:
+			h.sendError(
+				w,
+				http.StatusInternalServerError,
+				"INTERNAL_ERROR",
+				"Failed to deactivate users",
+			)
+		}
+
+		return
+	}
+
+	h.sendJSON(w, http.StatusOK, result)
+}
