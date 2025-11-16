@@ -103,9 +103,11 @@ func TestPullRequestLifecycleIntegration(t *testing.T) {
 	if err := stor.MergePullRequest(ctx, prID); err != nil {
 		t.Fatalf("MergePullRequest err: %v", err)
 	}
+
 	if err := stor.MergePullRequest(ctx, prID); err != nil {
 		t.Fatalf("MergePullRequest second err: %v", err)
 	}
+
 	pr, err := stor.GetPR(ctx, prID)
 	if err != nil || pr.PullRequestID != prID {
 		t.Fatalf("GetPR err=%v", err)
@@ -132,6 +134,7 @@ func TestMassDeactivateAndStatsIntegration(t *testing.T) {
 	if err := stor.CreatePullRequest(ctx, prID, "Title", users[0].UserID); err != nil {
 		t.Fatalf("CreatePullRequest err: %v", err)
 	}
+
 	resp, err := stor.MassDeactivateUsers(ctx, team, []string{users[0].UserID, users[1].UserID})
 	if err != nil {
 		t.Fatalf("MassDeactivateUsers err: %v", err)
@@ -159,12 +162,15 @@ func TestErrorsIntegration_SimplePaths(t *testing.T) {
 	if _, err := stor.ReassignPullRequest(ctx, "missing-pr", "x"); err == nil {
 		t.Fatalf("expected PR_NOT_FOUND error")
 	}
+
 	if err := stor.MergePullRequest(ctx, "missing-pr"); err == nil {
 		t.Fatalf("expected PR_NOT_FOUND on merge missing")
 	}
+
 	if _, err := stor.GetPR(ctx, "missing-pr"); err == nil {
 		t.Fatalf("expected PR_NOT_FOUND on get")
 	}
+
 	if _, _, err := stor.GetTeam(ctx, "missing-team"); err == nil {
 		t.Fatalf("expected TEAM_NOT_FOUND on get team")
 	}

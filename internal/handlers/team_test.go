@@ -81,6 +81,7 @@ func TestTeamCreateErrors(t *testing.T) {
 func TestTeamGetNotFound(t *testing.T) {
 	stor := newTestStorage(t)
 	defer stor.Close()
+
 	r := SetupTeamRoutes(stor)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/team/get?team_name=__missing__", nil))

@@ -14,6 +14,7 @@ import (
 func TestUserSetIsActive(t *testing.T) {
 	stor := newTestStorage(t)
 	defer stor.Close()
+
 	r := SetupTeamRoutes(stor)
 	team := "team_users_" + time.Now().Format("150405.000")
 	members := []models.TeamMember{
@@ -43,6 +44,7 @@ func TestUserSetIsActive(t *testing.T) {
 func TestUserSetIsActiveErrors(t *testing.T) {
 	stor := newTestStorage(t)
 	defer stor.Close()
+
 	r := SetupTeamRoutes(stor)
 
 	type tc struct {
@@ -79,6 +81,7 @@ func TestUserSetIsActiveErrors(t *testing.T) {
 func TestUserGetReviewErrors(t *testing.T) {
 	stor := newTestStorage(t)
 	defer stor.Close()
+
 	r := SetupTeamRoutes(stor)
 
 	type tc struct {
@@ -103,12 +106,14 @@ func TestUserGetReviewErrors(t *testing.T) {
 func TestUserMassDeactivateErrors(t *testing.T) {
 	stor := newTestStorage(t)
 	defer stor.Close()
+
 	r := SetupTeamRoutes(stor)
 
 	type tc struct {
 		body string
 		want int
 	}
+
 	ids := make([]string, 101)
 	for i := range ids {
 		ids[i] = "x"
