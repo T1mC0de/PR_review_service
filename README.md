@@ -131,10 +131,6 @@ make db-reset    # Полный reset окружения
 go test ./...          # Все тесты
 make stress-test       # Стресс-тест k6 (предварительная очистка)
 make load-test         # Сценарий нагрузки
-make load-test-fixed   # Сценарий с подготовленными данными
-make load-test-summary # Быстрый тест с summary
-make load-test-docker  # Запуск k6 внутри Docker
-make benchmark         # Apache Bench (простая метрика)
 ```
 
 Прочее:
