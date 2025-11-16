@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"pr-review-service/internal/storage"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"pr-review-service/internal/storage"
 )
 
 func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
