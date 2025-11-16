@@ -23,6 +23,7 @@ func SetupTeamRoutes(storage *storage.Storage) *chi.Mux {
 
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/setIsActive", userHandler.SetIsActive)
+		r.Get("/getReview", userHandler.GetReview)
 	})
 
 	r.Route("/pullRequest", func(r chi.Router) {
